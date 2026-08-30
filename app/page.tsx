@@ -5,6 +5,7 @@ import { ScrollReveal } from "@/components/scroll-reveal";
 import { useAppContext, Project } from "@/components/app-context";
 import { ProjectModal } from "@/components/project-modal";
 import { ScheduleModal } from "@/components/schedule-modal";
+import { CapabilityModal, CapabilityData } from "@/components/capability-modal";
 
 const services = [
   {
@@ -51,38 +52,61 @@ const faqs = [
   },
 ];
 
-const heroFeatures = [
+const heroFeatures: CapabilityData[] = [
   {
     label: "Brand systems",
     icon: "🎨",
-    shortDesc: "Consistent visual identity across every touchpoint.",
-    fullDesc: "We build digital-first brands with customized typography, color palettes, tone of voice guidelines, and fully responsive layouts that maintain cohesion across all platforms and screens.",
-    targetSection: "#services",
-    deliverables: ["Visual Identity", "Typography & Styleguides", "Messaging Frameworks"]
+    title: "Brand Systems",
+    description: "Building cohesive visual identities — logo systems, color palettes, typography scales, and component libraries that stay consistent across every touchpoint of a product or platform.",
+    included: [
+      "Design tokens and asset packs",
+      "Comprehensive digital style guides",
+      "Reusable UI component design systems",
+      "Brand voice and asset guideline documentation"
+    ],
+    exampleText: "Reference the Nexus Studio project (consistent gradient branding and typography system active across all sub-pages).",
+    exampleTarget: "#work"
   },
   {
     label: "Motion-led UX",
     icon: "⚡",
-    shortDesc: "Cinematic transitions and smooth user flows.",
-    fullDesc: "We blend custom storytelling with premium frontend engineering, using fluid transitions, reactive layouts, and high-performance micro-interactions designed to elevate visitor retention.",
-    targetSection: "#services",
-    deliverables: ["Custom Animation Engines", "Fluid Scroll Physics", "Interactive Prototypes"]
+    title: "Motion-led UX",
+    description: "Crafting interfaces where animation guides attention and improves usability — scroll-triggered reveals, smooth transitions, micro-interactions that make interfaces feel alive and responsive.",
+    included: [
+      "Interactive scroll animations",
+      "Sleek hover micro-interactions",
+      "Premium page transition effects",
+      "Fluid async loading skeletons"
+    ],
+    exampleText: "Reference this very portfolio's integrated scroll-reveal animations and theme-toggle hover glow transitions.",
+    exampleTarget: "#work"
   },
   {
     label: "AI automations",
     icon: "🤖",
-    shortDesc: "Intelligent features and workflows.",
-    fullDesc: "We integrate custom AI models, context-aware assistants, smart query logic, and robust task automation paths directly into your product to accelerate customer engagement and reduce support drag.",
-    targetSection: "#services",
-    deliverables: ["Intelligent Chat Assistants", "Process Automations", "Smart Onboardings"]
+    title: "AI Automations",
+    description: "Integrating AI-powered features to automate manual processes — fraud detection, verification systems, and intelligent data processing that reduce manual work and increase reliability.",
+    included: [
+      "AI-driven automated verification platforms",
+      "Real-time fraud scoring engines",
+      "Smart data entry validations and parser workflows"
+    ],
+    exampleText: "Reference SphereTrade's built-in AI Fraud Detection and Verification system which maintains a 98% accuracy score.",
+    exampleTarget: "#work"
   },
   {
     label: "Growth-ready launches",
     icon: "📈",
-    shortDesc: "SEO and performance optimization built-in.",
-    fullDesc: "Every experience is speed-tuned for maximum Lighthouse scores, optimized for technical SEO, and pre-integrated with detailed analytics tags to hit the ground running from day one.",
-    targetSection: "#work",
-    deliverables: ["99+ Lighthouse Scores", "SEO Meta Structure", "Custom Tracking Configs"]
+    title: "Growth-ready Launches",
+    description: "Building products with scalability and performance baked in from day one — optimized for fast load times, SEO, and infrastructure that can handle growth without rework.",
+    included: [
+      "Speed audit performance tuning",
+      "SEO-friendly semantic layouts",
+      "Scalable database architectures",
+      "Automated CI/CD deployment pipelines"
+    ],
+    exampleText: "Reference the full-stack architecture used across SphereTrade, Nexus Studio, and OrderlyQR.",
+    exampleTarget: "#work"
   }
 ];
 
@@ -90,7 +114,7 @@ export default function Home() {
   const { projects, testimonials } = useAppContext();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
-  const [activeFeatureIndex, setActiveFeatureIndex] = useState<number>(0);
+  const [activeCapability, setActiveCapability] = useState<CapabilityData | null>(null);
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.24),_transparent_40%),linear-gradient(135deg,_#040816_0%,_#0b1020_45%,_#111827_100%)] text-slate-100 dark:bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.24),_transparent_40%),linear-gradient(135deg,_#f8fafc_0%,_#eef2ff_45%,_#e2e8f0_100%)] dark:text-slate-900">
@@ -118,20 +142,15 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Interactive Feature Tags Mappings */}
+            {/* Interactive Feature Tags Mappings (Triggers detailed Popover Modals) */}
             <div className="mt-10 flex flex-wrap gap-4 text-sm">
               {heroFeatures.map((feat, index) => {
-                const isActive = activeFeatureIndex === index;
                 const staggerClass = index === 1 ? "delay-100" : index === 2 ? "delay-200" : index === 3 ? "delay-300" : "";
                 return (
                   <button
                     key={feat.label}
-                    onClick={() => setActiveFeatureIndex(index)}
-                    className={`animate-tag-entrance ${staggerClass} flex items-center gap-2 rounded-full border py-3.5 px-6 text-sm sm:text-base font-medium transition-all duration-300 transform cursor-pointer hover:scale-105 hover:border-cyan-400/40 hover:shadow-[0_0_15px_rgba(34,211,238,0.15)] ${
-                      isActive
-                        ? "border-cyan-400/50 bg-gradient-to-r from-cyan-500/15 via-indigo-500/10 to-fuchsia-500/15 text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.2)] dark:border-cyan-500/40 dark:from-cyan-500/10 dark:to-indigo-500/5 dark:text-cyan-700"
-                        : "border-white/10 bg-white/5 text-slate-300 dark:border-slate-200/70 dark:bg-slate-100/70 dark:text-slate-700"
-                    }`}
+                    onClick={() => setActiveCapability(feat)}
+                    className={`animate-tag-entrance ${staggerClass} flex items-center gap-2 rounded-full border py-3.5 px-6 text-sm sm:text-base font-medium transition-all duration-300 transform cursor-pointer hover:scale-105 hover:border-cyan-400/40 hover:shadow-[0_0_15px_rgba(34,211,238,0.15)] border-white/10 bg-white/5 text-slate-300 dark:border-slate-200/70 dark:bg-slate-100/70 dark:text-slate-700`}
                   >
                     <span>{feat.icon}</span>
                     <span>{feat.label}</span>
@@ -139,39 +158,6 @@ export default function Home() {
                 );
               })}
             </div>
-
-            {/* Dynamic Spotlight Capability Card */}
-            {activeFeatureIndex !== null && (
-              <div className="mt-6 animate-tag-entrance rounded-3xl border border-white/10 bg-slate-900/50 p-6 backdrop-blur-xl dark:border-slate-200/60 dark:bg-white/80 transition-all duration-500">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <span className="text-xs uppercase tracking-widest text-cyan-300 dark:text-cyan-600 font-semibold">
-                      Capability Spotlight
-                    </span>
-                    <h4 className="mt-1 text-xl font-bold text-white dark:text-slate-900 flex items-center gap-2">
-                      <span>{heroFeatures[activeFeatureIndex].icon}</span>
-                      <span>{heroFeatures[activeFeatureIndex].label}</span>
-                    </h4>
-                  </div>
-                  <a
-                    href={heroFeatures[activeFeatureIndex].targetSection}
-                    className="self-start sm:self-center rounded-full bg-white/10 border border-white/15 py-2 px-5 text-xs font-semibold text-white transition hover:bg-white/20 dark:bg-slate-900/10 dark:border-slate-900/15 dark:text-slate-900 dark:hover:bg-slate-900/20"
-                  >
-                    See details →
-                  </a>
-                </div>
-                <p className="mt-4 text-sm leading-7 text-slate-300 dark:text-slate-600">
-                  {heroFeatures[activeFeatureIndex].fullDesc}
-                </p>
-                <div className="mt-4 pt-4 border-t border-white/5 dark:border-slate-200/40 flex flex-wrap gap-2">
-                  {heroFeatures[activeFeatureIndex].deliverables.map((del) => (
-                    <span key={del} className="rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/20 px-3 py-1 text-xs dark:bg-cyan-500/5 dark:text-cyan-700 dark:border-cyan-500/10">
-                      ✓ {del}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
           </ScrollReveal>
 
           <ScrollReveal className="relative">
@@ -339,6 +325,13 @@ export default function Home() {
       <ScheduleModal
         isOpen={isScheduleOpen}
         onClose={() => setIsScheduleOpen(false)}
+      />
+
+      {/* Detailed Capability Details Modal */}
+      <CapabilityModal
+        isOpen={activeCapability !== null}
+        onClose={() => setActiveCapability(null)}
+        capability={activeCapability}
       />
     </main>
   );
