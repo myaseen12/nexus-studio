@@ -227,7 +227,7 @@ export default function EstimatePage() {
 
               <button
                 type="submit"
-                className="w-full rounded-full bg-cyan-400 py-3.5 font-semibold text-slate-950 transition hover:scale-[1.02] dark:bg-slate-950 dark:text-white cursor-pointer"
+                className="btn-premium-shimmer w-full rounded-full bg-cyan-400 py-3.5 font-semibold text-slate-950 transition hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(34,211,238,0.25)] dark:bg-slate-950 dark:text-white cursor-pointer"
               >
                 Log Proposal & Save
               </button>

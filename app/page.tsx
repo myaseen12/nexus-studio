@@ -131,12 +131,12 @@ export default function Home() {
               Nexus Studio builds immersive websites, products, and AI-powered growth systems for ambitious founders who want more than templates.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a href="#work" className="rounded-full bg-white px-6 py-3 text-center font-semibold text-slate-950 transition hover:scale-[1.02]">
+              <a href="#work" className="btn-premium-shimmer rounded-full bg-white px-6 py-3 text-center font-semibold text-slate-950 transition hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(255,255,255,0.15)]">
                 View our work
               </a>
               <button
                 onClick={() => setIsScheduleOpen(true)}
-                className="rounded-full border border-white/15 bg-white/10 px-6 py-3 text-center font-semibold text-white transition hover:bg-white/20 dark:border-slate-300/60 dark:bg-slate-100/70 dark:text-slate-900 cursor-pointer"
+                className="btn-premium-shimmer rounded-full border border-white/15 bg-white/10 px-6 py-3 text-center font-semibold text-white transition hover:bg-white/20 dark:border-slate-300/60 dark:bg-slate-100/70 dark:text-slate-900 cursor-pointer hover:shadow-[0_0_20px_rgba(99,102,241,0.15)]"
               >
                 Schedule consultation
               </button>
@@ -162,7 +162,7 @@ export default function Home() {
 
           <ScrollReveal className="relative">
             <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-cyan-500/20 via-transparent to-fuchsia-500/20 blur-3xl" />
-            <div className="relative rounded-[2rem] border border-white/10 bg-slate-950/70 p-6 shadow-2xl shadow-cyan-950/40 backdrop-blur-2xl dark:border-slate-200/70 dark:bg-white/80 dark:shadow-slate-200/40">
+            <div className="animate-float relative rounded-[2rem] border border-white/10 bg-slate-950/70 p-6 shadow-2xl shadow-cyan-950/40 backdrop-blur-2xl dark:border-slate-200/70 dark:bg-white/80 dark:shadow-slate-200/40">
               <div className="mb-6 flex items-center justify-between text-sm text-slate-400 dark:text-slate-500">
                 <span>Launch runway</span>
                 <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-emerald-300">Live</span>
@@ -306,12 +306,12 @@ export default function Home() {
           <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl dark:text-slate-900">Ready to turn your next launch into a premium experience?</h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-300 dark:text-slate-600">We’re available for strategy, design, development, and AI integrations across web, product, and growth.</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <a href="/contact" className="rounded-full bg-white px-6 py-3 font-semibold text-slate-950 transition hover:scale-[1.02] dark:bg-slate-950 dark:text-white">
+            <a href="/contact" className="btn-premium-shimmer rounded-full bg-white px-6 py-3 font-semibold text-slate-950 transition hover:scale-[1.02] dark:bg-slate-950 dark:text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.15)]">
               Start a project
             </a>
             <button
               onClick={() => setIsScheduleOpen(true)}
-              className="rounded-full border border-white/15 bg-white/10 px-6 py-3 font-semibold text-white transition hover:bg-white/20 dark:border-slate-300/60 dark:bg-slate-100/70 dark:text-slate-900 cursor-pointer"
+              className="btn-premium-shimmer rounded-full border border-white/15 bg-white/10 px-6 py-3 font-semibold text-white transition hover:bg-white/20 dark:border-slate-300/60 dark:bg-slate-100/70 dark:text-slate-900 cursor-pointer hover:shadow-[0_0_20px_rgba(99,102,241,0.15)]"
             >
               Schedule a discovery call
             </button>

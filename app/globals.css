@@ -80,4 +80,44 @@ body::before {
   animation-delay: 300ms;
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.btn-premium-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-premium-shimmer::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 30%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.15) 40%,
+    rgba(255, 255, 255, 0.3) 60%,
+    transparent
+  );
+  transform: rotate(30deg);
+  pointer-events: none;
+  animation: shimmerSweep 4s cubic-bezier(0.19, 1, 0.22, 1) infinite;
+}
+
+@keyframes shimmerSweep {
+  0% { left: -60%; }
+  15% { left: 140%; }
+  100% { left: 140%; }
+}
+
+
 
