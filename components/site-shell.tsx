@@ -57,11 +57,16 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     { href: "/about", label: "About" },
     { href: "/services", label: "Services" },
     { href: "/portfolio", label: "Portfolio" },
+    { href: "/blog", label: "Blog" },
+    { href: "/estimate", label: "Estimator" },
+    { href: "/tracker", label: "Tracker" },
+    { href: "/careers", label: "Careers" },
     { href: "/contact", label: "Contact" },
     ...(user
       ? [{ href: "/admin/dashboard", label: "Dashboard" }]
       : [{ href: "/login", label: "Login" }]),
   ];
+
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 transition-colors duration-300 dark:bg-slate-50 dark:text-slate-950">

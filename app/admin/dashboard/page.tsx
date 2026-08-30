@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAppContext } from "@/components/app-context";
+import { useAppContext, ProjectRoadmap } from "@/components/app-context";
 import { ScrollReveal } from "@/components/scroll-reveal";
+
+type DashboardTab = "messages" | "consultations" | "estimates" | "blogs" | "applicants" | "roadmaps";
 
 export default function AdminDashboardPage() {
   const {
@@ -12,30 +14,40 @@ export default function AdminDashboardPage() {
     testimonials,
     messages,
     consultations,
+    blogPosts,
+    estimates,
+    jobApplications,
+    roadmaps,
     addProject,
     deleteProject,
     addTestimonial,
     deleteTestimonial,
     deleteMessage,
     deleteConsultation,
+    addBlogPost,
+    deleteBlogPost,
+    deleteEstimate,
+    deleteJobApplication,
+    updateRoadmap,
     logout,
   } = useAppContext();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"messages" | "projects" | "testimonials" | "consultations">("messages");
+  const [activeTab, setActiveTab] = useState<DashboardTab>("messages");
 
-  // Project form states
-  const [projName, setProjName] = useState("");
-  const [projType, setProjType] = useState("");
-  const [projOutcome, setProjOutcome] = useState("");
-  const [projBlurb, setProjBlurb] = useState("");
-  const [projSuccess, setProjSuccess] = useState("");
+  // Blog Form State
+  const [blogTitle, setBlogTitle] = useState("");
+  const [blogCategory, setBlogCategory] = useState("Design");
+  const [blogExcerpt, setBlogExcerpt] = useState("");
+  const [blogContent, setBlogContent] = useState("");
+  const [blogSuccess, setBlogSuccess] = useState("");
 
-  // Testimonial form states
-  const [testQuote, setTestQuote] = useState("");
-  const [testAuthor, setTestAuthor] = useState("");
-  const [testRole, setTestRole] = useState("");
-  const [testSuccess, setTestSuccess] = useState("");
+  // Roadmap editing state
+  const [selectedRoadmapId, setSelectedRoadmapId] = useState<string>("");
+  const [roadmapStatus, setRoadmapStatus] = useState("Design Phase");
+  const [roadmapProgress, setRoadmapProgress] = useState(50);
+  const [roadmapNewLog, setRoadmapNewLog] = useState("");
+  const [roadmapSuccess, setRoadmapSuccess] = useState("");
 
   // Redirect if unauthenticated
   useEffect(() => {
@@ -44,46 +56,72 @@ export default function AdminDashboardPage() {
     }
   }, [user, router]);
 
-  if (!user) return null; // Avoid rendering flash, redirect instantly
-
-  // Projects submission
-  const handleAddProject = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!projName || !projType || !projBlurb) {
-      alert("Please fill in Name, Type and Blurb.");
-      return;
+  // Set default roadmap select values when roadmaps load
+  useEffect(() => {
+    if (roadmaps.length > 0 && !selectedRoadmapId) {
+      const first = roadmaps[0];
+      setSelectedRoadmapId(first.id);
+      setRoadmapStatus(first.status);
+      setRoadmapProgress(first.progressVal);
     }
-    addProject({
-      name: projName,
-      type: projType,
-      outcome: projOutcome || projType,
-      blurb: projBlurb,
-    });
-    setProjName("");
-    setProjType("");
-    setProjOutcome("");
-    setProjBlurb("");
-    setProjSuccess("Project added successfully!");
-    setTimeout(() => setProjSuccess(""), 3000);
+  }, [roadmaps, selectedRoadmapId]);
+
+  if (!user) return null;
+
+  // Handles updating selected roadmap values
+  const handleRoadmapSelect = (id: string) => {
+    const rm = roadmaps.find((r) => r.id === id);
+    if (rm) {
+      setSelectedRoadmapId(id);
+      setRoadmapStatus(rm.status);
+      setRoadmapProgress(rm.progressVal);
+    }
   };
 
-  // Testimonials submission
-  const handleAddTestimonial = (e: React.FormEvent) => {
+  // Submits roadmap updates
+  const handleUpdateRoadmap = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!testQuote || !testAuthor || !testRole) {
-      alert("Please fill in Quote, Author and Role.");
+    const rm = roadmaps.find((r) => r.id === selectedRoadmapId);
+    if (!rm) return;
+
+    const newLogs = [...rm.updatesLog];
+    if (roadmapNewLog.trim()) {
+      newLogs.push(roadmapNewLog.trim());
+    }
+
+    updateRoadmap({
+      ...rm,
+      status: roadmapStatus,
+      progressVal: Number(roadmapProgress),
+      updatesLog: newLogs,
+    });
+
+    setRoadmapNewLog("");
+    setRoadmapSuccess("Roadmap status updated successfully!");
+    setTimeout(() => setRoadmapSuccess(""), 3000);
+  };
+
+  // Submits blog post updates
+  const handleAddBlogPost = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!blogTitle || !blogExcerpt || !blogContent) {
+      alert("Please fill in Blog Title, Excerpt, and Content.");
       return;
     }
-    addTestimonial({
-      quote: testQuote,
-      author: testAuthor,
-      role: testRole,
+
+    addBlogPost({
+      title: blogTitle,
+      category: blogCategory,
+      excerpt: blogExcerpt,
+      content: blogContent,
+      author: "Nexus Admin",
     });
-    setTestQuote("");
-    setTestAuthor("");
-    setTestRole("");
-    setTestSuccess("Testimonial added successfully!");
-    setTimeout(() => setTestSuccess(""), 3000);
+
+    setBlogTitle("");
+    setBlogExcerpt("");
+    setBlogContent("");
+    setBlogSuccess("Blog post published successfully!");
+    setTimeout(() => setBlogSuccess(""), 3000);
   };
 
   return (
@@ -93,13 +131,13 @@ export default function AdminDashboardPage() {
         <div>
           <p className="text-sm uppercase tracking-[0.35em] text-cyan-300">Admin workspace</p>
           <h1 className="mt-2 text-4xl font-semibold sm:text-5xl text-white dark:text-slate-900">
-            Console Dashboard
+            CMS Dashboard
           </h1>
           <p className="mt-2 text-sm text-slate-400 dark:text-slate-600">
-            Welcome back, <span className="font-semibold text-slate-200 dark:text-slate-800">{user.name}</span> ({user.email})
+            Active User: <span className="font-semibold text-slate-200 dark:text-slate-800">{user.name}</span> ({user.email})
           </p>
         </div>
-        <div className="flex gap-3">
+        <div>
           <button
             onClick={logout}
             className="rounded-full border border-red-500/30 bg-red-500/10 px-5 py-2.5 text-sm font-semibold text-red-400 transition hover:bg-red-500/20 cursor-pointer"
@@ -109,53 +147,30 @@ export default function AdminDashboardPage() {
         </div>
       </ScrollReveal>
 
-      {/* Dynamic Summary Cards */}
-      <div className="mt-10 grid gap-4 md:grid-cols-4">
+      {/* Dynamic Summary Cards Grid */}
+      <div className="mt-10 grid gap-4 grid-cols-2 md:grid-cols-6">
         {[
-          {
-            tab: "messages" as const,
-            title: "Inbox Messages",
-            value: messages.length,
-            icon: "✉",
-            color: "from-cyan-500/10 to-indigo-500/5 hover:border-cyan-500/35",
-          },
-          {
-            tab: "consultations" as const,
-            title: "Booked Sessions",
-            value: consultations.length,
-            icon: "📅",
-            color: "from-emerald-500/10 to-teal-500/5 hover:border-emerald-500/35",
-          },
-          {
-            tab: "projects" as const,
-            title: "Dynamic Projects",
-            value: projects.length,
-            icon: "✦",
-            color: "from-indigo-500/10 to-fuchsia-500/5 hover:border-indigo-500/35",
-          },
-          {
-            tab: "testimonials" as const,
-            title: "Testimonials",
-            value: testimonials.length,
-            icon: "◌",
-            color: "from-fuchsia-500/10 to-pink-500/5 hover:border-fuchsia-500/35",
-          },
+          { tab: "messages" as const, title: "Inquiries", value: messages.length, icon: "✉" },
+          { tab: "consultations" as const, title: "Meetings", value: consultations.length, icon: "📅" },
+          { tab: "estimates" as const, title: "Estimates", value: estimates.length, icon: "💰" },
+          { tab: "blogs" as const, title: "Blogs", value: blogPosts.length, icon: "📰" },
+          { tab: "applicants" as const, title: "Candidates", value: jobApplications.length, icon: "👥" },
+          { tab: "roadmaps" as const, title: "Roadmaps", value: roadmaps.length, icon: "🗺" },
         ].map((card) => (
           <button
             key={card.title}
             onClick={() => setActiveTab(card.tab)}
-            className={`text-left rounded-[1.5rem] border p-5 backdrop-blur-xl transition duration-300 bg-gradient-to-br ${card.color} ${
+            className={`text-left rounded-2xl border p-4 transition duration-300 ${
               activeTab === card.tab
                 ? "border-cyan-400/50 ring-1 ring-cyan-400/20 bg-slate-900 dark:bg-white"
-                : "border-white/10 dark:border-slate-200/70"
+                : "border-white/10 dark:border-slate-200/70 bg-white/5"
             } cursor-pointer`}
           >
-            <div className="flex justify-between items-center">
-              <p className="text-xs text-slate-400 dark:text-slate-600 font-medium">{card.title}</p>
-              <span className="text-lg text-cyan-300">{card.icon}</span>
+            <div className="flex justify-between items-center text-xs text-slate-400 dark:text-slate-600">
+              <span className="font-semibold">{card.title}</span>
+              <span className="text-cyan-300">{card.icon}</span>
             </div>
-            <p className="mt-3 text-3xl font-semibold text-white dark:text-slate-900">{card.value}</p>
-            <p className="mt-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">Manage module →</p>
+            <p className="mt-3 text-2xl font-bold text-white dark:text-slate-900">{card.value}</p>
           </button>
         ))}
       </div>
@@ -163,189 +178,168 @@ export default function AdminDashboardPage() {
       {/* Main Content Workspace */}
       <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_2fr]">
         
-        {/* Left Side: Form Creators & Context Info */}
+        {/* Left Side: Form Editors */}
         <ScrollReveal className="space-y-6">
-          
-          {/* Project Form */}
-          {activeTab === "projects" && (
+          {/* Blog Publisher Form */}
+          {activeTab === "blogs" && (
             <div className="rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 backdrop-blur-xl dark:border-slate-200/70 dark:bg-white/80">
-              <h3 className="text-xl font-semibold text-white dark:text-slate-900 mb-4 font-sans">Add New Project</h3>
-              
-              {projSuccess && (
+              <h3 className="text-lg font-bold text-white dark:text-slate-900 mb-4">Write Blog Post</h3>
+              {blogSuccess && (
                 <div className="mb-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-400">
-                  {projSuccess}
+                  {blogSuccess}
                 </div>
               )}
-
-              <form onSubmit={handleAddProject} className="space-y-4 text-sm">
+              <form onSubmit={handleAddBlogPost} className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-xs text-slate-400 dark:text-slate-600 mb-1 font-medium">Project Name</label>
+                  <label className="block text-slate-400 dark:text-slate-600 mb-1 font-semibold">Post Title</label>
                   <input
-                    value={projName}
-                    onChange={(e) => setProjName(e.target.value)}
+                    value={blogTitle}
+                    onChange={(e) => setBlogTitle(e.target.value)}
                     className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
-                    placeholder="e.g. Apollo App"
+                    placeholder="e.g. Speed Optimizations in Next.js"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 dark:text-slate-600 mb-1 font-medium">Type (Category)</label>
+                  <label className="block text-slate-400 dark:text-slate-600 mb-1 font-semibold">Category</label>
+                  <select
+                    value={blogCategory}
+                    onChange={(e) => setBlogCategory(e.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 outline-none dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
+                  >
+                    <option value="Design">Design</option>
+                    <option value="Tech">Tech</option>
+                    <option value="AI">AI</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-400 dark:text-slate-600 mb-1 font-semibold">Short Excerpt</label>
                   <input
-                    value={projType}
-                    onChange={(e) => setProjType(e.target.value)}
+                    value={blogExcerpt}
+                    onChange={(e) => setBlogExcerpt(e.target.value)}
                     className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
-                    placeholder="e.g. iOS App, SaaS Platform"
+                    placeholder="Brief description preview..."
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 dark:text-slate-600 mb-1 font-medium">Outcome/Focus (Optional)</label>
-                  <input
-                    value={projOutcome}
-                    onChange={(e) => setProjOutcome(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
-                    placeholder="e.g. Design System overhaul"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-400 dark:text-slate-600 mb-1 font-medium">Blurb / Description</label>
+                  <label className="block text-slate-400 dark:text-slate-600 mb-1 font-semibold">Post Content</label>
                   <textarea
-                    value={projBlurb}
-                    onChange={(e) => setProjBlurb(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none min-h-[80px] dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
-                    placeholder="Brief description of the work and impact..."
+                    value={blogContent}
+                    onChange={(e) => setBlogContent(e.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none min-h-[120px] dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
+                    placeholder="Write article body content here..."
                   />
                 </div>
                 <button
                   type="submit"
                   className="w-full rounded-full bg-cyan-400 py-2.5 font-semibold text-slate-950 transition hover:scale-[1.02] dark:bg-slate-950 dark:text-white cursor-pointer"
                 >
-                  Publish Project
+                  Publish Article
                 </button>
               </form>
             </div>
           )}
 
-          {/* Testimonial Form */}
-          {activeTab === "testimonials" && (
+          {/* Roadmap Status Editor Form */}
+          {activeTab === "roadmaps" && (
             <div className="rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 backdrop-blur-xl dark:border-slate-200/70 dark:bg-white/80">
-              <h3 className="text-xl font-semibold text-white dark:text-slate-900 mb-4">Add Testimonial</h3>
-
-              {testSuccess && (
+              <h3 className="text-lg font-bold text-white dark:text-slate-900 mb-4">Edit Client Roadmap</h3>
+              {roadmapSuccess && (
                 <div className="mb-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-400">
-                  {testSuccess}
+                  {roadmapSuccess}
                 </div>
               )}
-
-              <form onSubmit={handleAddTestimonial} className="space-y-4 text-sm">
-                <div>
-                  <label className="block text-xs text-slate-400 dark:text-slate-600 mb-1 font-medium">Author Name</label>
-                  <input
-                    value={testAuthor}
-                    onChange={(e) => setTestAuthor(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
-                    placeholder="e.g. Jane Doe"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-400 dark:text-slate-600 mb-1 font-medium">Author Role & Company</label>
-                  <input
-                    value={testRole}
-                    onChange={(e) => setTestRole(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
-                    placeholder="e.g. CEO, Vertex Inc."
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-400 dark:text-slate-600 mb-1 font-medium">Quote Description</label>
-                  <textarea
-                    value={testQuote}
-                    onChange={(e) => setTestQuote(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none min-h-[100px] dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
-                    placeholder="What did they say about working with Nexus Studio..."
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full rounded-full bg-cyan-400 py-2.5 font-semibold text-slate-950 transition hover:scale-[1.02] dark:bg-slate-950 dark:text-white cursor-pointer"
-                >
-                  Publish Testimonial
-                </button>
-              </form>
+              {selectedRoadmapId ? (
+                <form onSubmit={handleUpdateRoadmap} className="space-y-4 text-xs">
+                  <div>
+                    <label className="block text-slate-400 dark:text-slate-600 mb-1 font-semibold">Select Project</label>
+                    <select
+                      value={selectedRoadmapId}
+                      onChange={(e) => handleRoadmapSelect(e.target.value)}
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 outline-none dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
+                    >
+                      {roadmaps.map((r) => (
+                        <option key={r.id} value={r.id}>{r.projectName} ({r.projectCode})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 dark:text-slate-600 mb-1 font-semibold">Current Status Status</label>
+                    <input
+                      value={roadmapStatus}
+                      onChange={(e) => setRoadmapStatus(e.target.value)}
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
+                      placeholder="e.g. Development Phase"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 dark:text-slate-600 mb-1 font-semibold">Progress Percentage: {roadmapProgress}%</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={roadmapProgress}
+                      onChange={(e) => setRoadmapProgress(Number(e.target.value))}
+                      className="w-full cursor-pointer accent-cyan-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 dark:text-slate-600 mb-1 font-semibold">Append Update Log Note</label>
+                    <input
+                      value={roadmapNewLog}
+                      onChange={(e) => setRoadmapNewLog(e.target.value)}
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none dark:border-slate-200/70 dark:bg-slate-50/70 dark:text-slate-900"
+                      placeholder="e.g. Staging build deployed successfully."
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full rounded-full bg-cyan-400 py-2.5 font-semibold text-slate-950 transition hover:scale-[1.02] dark:bg-slate-950 dark:text-white cursor-pointer"
+                  >
+                    Save Changes & Publish
+                  </button>
+                </form>
+              ) : (
+                <p className="text-xs text-slate-500">No active roadmaps to edit.</p>
+              )}
             </div>
           )}
 
-          {/* Quick info if activeTab is messages or consultations */}
-          {(activeTab === "messages" || activeTab === "consultations") && (
+          {/* Helper panel for other tabs */}
+          {activeTab !== "blogs" && activeTab !== "roadmaps" && (
             <div className="rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 backdrop-blur-xl dark:border-slate-200/70 dark:bg-white/80">
-              <h3 className="text-xl font-semibold text-white dark:text-slate-900 mb-3">Live Console Feed</h3>
-              <p className="text-sm text-slate-400 dark:text-slate-600 leading-relaxed mb-4">
-                This dashboard registers and streams client queries and bookings instantly.
+              <h3 className="text-lg font-bold text-white dark:text-slate-900 mb-3">Workspace Module</h3>
+              <p className="text-xs text-slate-400 dark:text-slate-600 leading-relaxed mb-4">
+                This dashboard functions as a client-side CRM database.
               </p>
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-xs text-slate-400 dark:border-slate-200/70 dark:bg-slate-50 dark:text-slate-600 space-y-2">
-                <p>
-                  <strong className="text-cyan-300">✉ Messages Inbox:</strong> Submissions logged directly from the Contact page form.
-                </p>
-                <p>
-                  <strong className="text-emerald-300">📅 Consultations:</strong> Calendar bookings booked through scheduling modals.
-                </p>
+              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-[10px] text-slate-400 dark:border-slate-200/60 dark:bg-slate-50 dark:text-slate-600">
+                Data changes are saved in real-time to your local browser storage. Refreshing the browser preserves the records.
               </div>
             </div>
           )}
         </ScrollReveal>
 
-        {/* Right Side: Tab Lists & Actions */}
+        {/* Right Side: Tab Lists & Delete Controllers */}
         <ScrollReveal className="rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 shadow-2xl backdrop-blur-2xl dark:border-slate-200/70 dark:bg-white/80">
           
-          {/* Tab 1: MESSAGES LIST */}
+          {/* Tab 1: MESSAGES */}
           {activeTab === "messages" && (
             <div>
-              <h3 className="text-2xl font-semibold text-white dark:text-slate-900 mb-6 flex justify-between items-center">
-                <span>Inbox Inquiries</span>
+              <h3 className="text-xl font-bold text-white dark:text-slate-900 mb-6 flex justify-between items-center">
+                <span>Inquiry Inbox</span>
                 <span className="text-xs bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full">{messages.length} total</span>
               </h3>
-
               {messages.length === 0 ? (
-                <div className="text-center py-16 text-slate-500">
-                  <span className="text-3xl block mb-2">✉</span>
-                  No incoming messages found.
-                </div>
+                <p className="text-center py-12 text-slate-500">No messages in inbox.</p>
               ) : (
                 <div className="space-y-4">
                   {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className="group rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-cyan-400/20 dark:border-slate-200/70 dark:bg-slate-50"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-white dark:text-slate-900 text-base">{msg.name}</p>
-                          <a
-                            href={`mailto:${msg.email}`}
-                            className="text-xs text-cyan-300 dark:text-cyan-600 hover:underline block mt-0.5"
-                          >
-                            {msg.email}
-                          </a>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-slate-500">
-                            {new Date(msg.date).toLocaleDateString(undefined, {
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                          <button
-                            onClick={() => deleteMessage(msg.id)}
-                            className="text-slate-500 hover:text-red-400 transition text-sm cursor-pointer p-1"
-                            title="Delete Inquiry"
-                          >
-                            ✕
-                          </button>
-                        </div>
+                    <div key={msg.id} className="rounded-xl border border-white/5 bg-white/5 p-4 flex justify-between items-start dark:border-slate-200 dark:bg-slate-50">
+                      <div>
+                        <p className="font-semibold text-white dark:text-slate-900 text-sm">{msg.name}</p>
+                        <p className="text-xs text-cyan-300 dark:text-cyan-600 mt-0.5">{msg.email}</p>
+                        <p className="mt-3 text-xs text-slate-300 dark:text-slate-700 whitespace-pre-wrap">{msg.message}</p>
                       </div>
-                      <p className="mt-3 text-sm text-slate-300 dark:text-slate-700 whitespace-pre-line leading-relaxed">
-                        {msg.message}
-                      </p>
+                      <button onClick={() => deleteMessage(msg.id)} className="text-slate-500 hover:text-red-400 transition cursor-pointer">✕</button>
                     </div>
                   ))}
                 </div>
@@ -353,59 +347,25 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* Tab 2: CONSULTATIONS LIST */}
+          {/* Tab 2: CONSULTATIONS */}
           {activeTab === "consultations" && (
             <div>
-              <h3 className="text-2xl font-semibold text-white dark:text-slate-900 mb-6 flex justify-between items-center">
-                <span>Discovery Sessions</span>
-                <span className="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full">{consultations.length} total</span>
+              <h3 className="text-xl font-bold text-white dark:text-slate-900 mb-6 flex justify-between items-center">
+                <span>Discovery Bookings</span>
+                <span className="text-xs bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full">{consultations.length} total</span>
               </h3>
-
               {consultations.length === 0 ? (
-                <div className="text-center py-16 text-slate-500">
-                  <span className="text-3xl block mb-2">📅</span>
-                  No booked consultations found.
-                </div>
+                <p className="text-center py-12 text-slate-500">No sessions scheduled.</p>
               ) : (
                 <div className="space-y-4">
                   {consultations.map((con) => (
-                    <div
-                      key={con.id}
-                      className="group rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-emerald-400/20 dark:border-slate-200/70 dark:bg-slate-50"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-white dark:text-slate-900 text-base">{con.name}</p>
-                          <a
-                            href={`mailto:${con.email}`}
-                            className="text-xs text-cyan-300 dark:text-cyan-600 hover:underline block mt-0.5"
-                          >
-                            {con.email}
-                          </a>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 text-xs font-semibold">
-                            {con.time}
-                          </span>
-                          <button
-                            onClick={() => deleteConsultation(con.id)}
-                            className="text-slate-500 hover:text-red-400 transition text-sm cursor-pointer p-1"
-                            title="Cancel Booking"
-                          >
-                            ✕
-                          </button>
-                        </div>
+                    <div key={con.id} className="rounded-xl border border-white/5 bg-white/5 p-4 flex justify-between items-start dark:border-slate-200 dark:bg-slate-50">
+                      <div>
+                        <p className="font-semibold text-white dark:text-slate-900 text-sm">{con.name}</p>
+                        <p className="text-xs text-cyan-300 dark:text-cyan-600 mt-0.5">{con.email}</p>
+                        <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">Date: {con.date} • {con.time} ({con.service})</p>
                       </div>
-                      <div className="mt-4 grid grid-cols-2 gap-4 text-xs border-t border-white/10 pt-3 dark:border-slate-200/50">
-                        <div>
-                          <span className="text-slate-500 block">Session Date:</span>
-                          <span className="font-semibold text-slate-300 dark:text-slate-700">{con.date}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 block">Focus Topic:</span>
-                          <span className="font-semibold text-slate-300 dark:text-slate-700">{con.service}</span>
-                        </div>
-                      </div>
+                      <button onClick={() => deleteConsultation(con.id)} className="text-slate-500 hover:text-red-400 transition cursor-pointer">✕</button>
                     </div>
                   ))}
                 </div>
@@ -413,41 +373,30 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* Tab 3: PROJECTS LIST */}
-          {activeTab === "projects" && (
+          {/* Tab 3: ESTIMATES */}
+          {activeTab === "estimates" && (
             <div>
-              <h3 className="text-2xl font-semibold text-white dark:text-slate-900 mb-6 flex justify-between items-center">
-                <span>Active Projects</span>
-                <span className="text-xs bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full">{projects.length} total</span>
+              <h3 className="text-xl font-bold text-white dark:text-slate-900 mb-6 flex justify-between items-center">
+                <span>Submitted Proposals</span>
+                <span className="text-xs bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full">{estimates.length} total</span>
               </h3>
-
-              {projects.length === 0 ? (
-                <div className="text-center py-16 text-slate-500">
-                  <span className="text-3xl block mb-2">✦</span>
-                  No projects in the portfolio database.
-                </div>
+              {estimates.length === 0 ? (
+                <p className="text-center py-12 text-slate-500">No calculations registered.</p>
               ) : (
                 <div className="space-y-4">
-                  {projects.map((proj) => (
-                    <div
-                      key={proj.id}
-                      className="flex justify-between items-start rounded-2xl border border-white/10 bg-white/5 p-4 dark:border-slate-200/70 dark:bg-slate-50"
-                    >
-                      <div className="max-w-[85%]">
-                        <span className="text-xs text-indigo-300 dark:text-indigo-600 font-medium tracking-wider uppercase">
-                          {proj.type}
-                        </span>
-                        <h4 className="font-semibold text-white dark:text-slate-900 text-lg mt-1">{proj.name}</h4>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Outcome: {proj.outcome}</p>
-                        <p className="text-sm text-slate-300 dark:text-slate-700 mt-2 leading-relaxed">{proj.blurb}</p>
+                  {estimates.map((est) => (
+                    <div key={est.id} className="rounded-xl border border-white/5 bg-white/5 p-4 flex justify-between items-start dark:border-slate-200 dark:bg-slate-50">
+                      <div>
+                        <p className="font-semibold text-white dark:text-slate-900 text-sm">{est.name}</p>
+                        <p className="text-xs text-cyan-300 dark:text-cyan-600 mt-0.5">{est.email}</p>
+                        <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-slate-400 dark:text-slate-500">
+                          <div>Scope: <span className="font-semibold text-slate-300 dark:text-slate-700">{est.scope}</span></div>
+                          <div>Pages: <span className="font-semibold text-slate-300 dark:text-slate-700">{est.pages}</span></div>
+                          <div>Timeline: <span className="font-semibold text-slate-300 dark:text-slate-700">{est.timeline}</span></div>
+                          <div>Cost Range: <span className="font-bold text-emerald-300 dark:text-emerald-600">{est.calculatedBudget}</span></div>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => deleteProject(proj.id)}
-                        className="text-slate-500 hover:text-red-400 transition text-sm cursor-pointer p-1"
-                        title="Remove Project"
-                      >
-                        ✕
-                      </button>
+                      <button onClick={() => deleteEstimate(est.id)} className="text-slate-500 hover:text-red-400 transition cursor-pointer">✕</button>
                     </div>
                   ))}
                 </div>
@@ -455,43 +404,93 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* Tab 4: TESTIMONIALS LIST */}
-          {activeTab === "testimonials" && (
+          {/* Tab 4: BLOGS LIST */}
+          {activeTab === "blogs" && (
             <div>
-              <h3 className="text-2xl font-semibold text-white dark:text-slate-900 mb-6 flex justify-between items-center">
-                <span>Client Voices</span>
-                <span className="text-xs bg-fuchsia-500/20 text-fuchsia-300 px-3 py-1 rounded-full">{testimonials.length} total</span>
+              <h3 className="text-xl font-bold text-white dark:text-slate-900 mb-6 flex justify-between items-center">
+                <span>Published Articles</span>
+                <span className="text-xs bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full">{blogPosts.length} total</span>
               </h3>
-
-              {testimonials.length === 0 ? (
-                <div className="text-center py-16 text-slate-500">
-                  <span className="text-3xl block mb-2">◌</span>
-                  No testimonials published yet.
-                </div>
+              {blogPosts.length === 0 ? (
+                <p className="text-center py-12 text-slate-500">No published posts.</p>
               ) : (
                 <div className="space-y-4">
-                  {testimonials.map((test) => (
-                    <div
-                      key={test.id}
-                      className="flex justify-between items-start rounded-2xl border border-white/10 bg-white/5 p-4 dark:border-slate-200/70 dark:bg-slate-50"
-                    >
-                      <div className="max-w-[85%]">
-                        <p className="text-sm text-slate-200 dark:text-slate-800 italic">“{test.quote}”</p>
-                        <footer className="text-xs text-slate-400 dark:text-slate-500 mt-2 font-medium">
-                          — {test.author} • {test.role}
-                        </footer>
+                  {blogPosts.map((post) => (
+                    <div key={post.id} className="rounded-xl border border-white/5 bg-white/5 p-4 flex justify-between items-start dark:border-slate-200 dark:bg-slate-50">
+                      <div className="max-w-[90%]">
+                        <span className="text-[10px] text-cyan-300 dark:text-cyan-600 uppercase font-semibold">{post.category}</span>
+                        <h4 className="font-semibold text-white dark:text-slate-900 text-sm mt-1">{post.title}</h4>
+                        <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">{post.excerpt}</p>
                       </div>
-                      <button
-                        onClick={() => deleteTestimonial(test.id)}
-                        className="text-slate-500 hover:text-red-400 transition text-sm cursor-pointer p-1"
-                        title="Remove Testimonial"
-                      >
-                        ✕
-                      </button>
+                      <button onClick={() => deleteBlogPost(post.id)} className="text-slate-500 hover:text-red-400 transition cursor-pointer">✕</button>
                     </div>
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Tab 5: CANDIDATES */}
+          {activeTab === "applicants" && (
+            <div>
+              <h3 className="text-xl font-bold text-white dark:text-slate-900 mb-6 flex justify-between items-center">
+                <span>Job Applicants</span>
+                <span className="text-xs bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full">{jobApplications.length} total</span>
+              </h3>
+              {jobApplications.length === 0 ? (
+                <p className="text-center py-12 text-slate-500">No applications registered.</p>
+              ) : (
+                <div className="space-y-4">
+                  {jobApplications.map((app) => (
+                    <div key={app.id} className="rounded-xl border border-white/5 bg-white/5 p-4 flex justify-between items-start dark:border-slate-200 dark:bg-slate-50">
+                      <div>
+                        <p className="font-semibold text-white dark:text-slate-900 text-sm">{app.name}</p>
+                        <p className="text-xs text-cyan-300 dark:text-cyan-600 mt-0.5">{app.email}</p>
+                        <p className="text-xs text-slate-400 mt-2 font-medium">Applied for: <span className="text-slate-200 dark:text-slate-800">{app.role}</span></p>
+                        <a href={app.portfolioUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-300 hover:underline block mt-1">Portfolio: {app.portfolioUrl}</a>
+                        {app.notes && <p className="mt-3 text-xs text-slate-400 dark:text-slate-600 italic">Notes: "{app.notes}"</p>}
+                      </div>
+                      <button onClick={() => deleteJobApplication(app.id)} className="text-slate-500 hover:text-red-400 transition cursor-pointer">✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tab 6: CLIENT ROADMAPS */}
+          {activeTab === "roadmaps" && (
+            <div>
+              <h3 className="text-xl font-bold text-white dark:text-slate-900 mb-6 flex justify-between items-center">
+                <span>Active Roadmaps</span>
+                <span className="text-xs bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full">{roadmaps.length} total</span>
+              </h3>
+              <div className="space-y-4">
+                {roadmaps.map((rm) => (
+                  <button
+                    key={rm.id}
+                    onClick={() => handleRoadmapSelect(rm.id)}
+                    className={`w-full text-left rounded-xl border p-4 transition duration-200 ${
+                      selectedRoadmapId === rm.id
+                        ? "border-cyan-400/50 bg-cyan-500/10"
+                        : "border-white/5 bg-white/5 hover:bg-white/10"
+                    } dark:bg-slate-50`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <h4 className="font-bold text-white dark:text-slate-900 text-sm">{rm.projectName}</h4>
+                      <span className="text-[10px] text-slate-500">Code: {rm.projectCode}</span>
+                    </div>
+                    <div className="mt-3 flex justify-between text-xs text-slate-400">
+                      <span>Status: <span className="text-slate-200 font-semibold dark:text-slate-800">{rm.status}</span></span>
+                      <span>{rm.progressVal}%</span>
+                    </div>
+                    {/* Tiny Progress Bar */}
+                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden mt-2 dark:bg-slate-200">
+                      <div className="h-full bg-cyan-400" style={{ width: `${rm.progressVal}%` }} />
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
