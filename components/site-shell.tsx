@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAppContext } from "@/components/app-context";
+import { AmbientBackground } from "@/components/ambient-background";
 
 function ScrollProgress() {
   const [progress, setProgress] = useState(0);
@@ -71,6 +72,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 transition-colors duration-300 dark:bg-slate-50 dark:text-slate-950">
       <ScrollProgress />
+      <AmbientBackground />
       <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl dark:border-slate-200/70 dark:bg-slate-50/80">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8 lg:px-10">
           <Link href="/" className="text-lg font-semibold tracking-[0.3em] text-white dark:text-slate-900">
