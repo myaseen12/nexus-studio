@@ -183,6 +183,10 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+                <p className="mt-4 text-[10px] text-slate-500 text-center italic dark:text-slate-400">
+                  *Illustrative studio metrics based on sandboxed case studies.
+                </p>
+
               </div>
             </div>
           </ScrollReveal>
